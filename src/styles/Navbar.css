@@ -1,0 +1,182 @@
+/* ─── NAVBAR ─── */
+.navbar {
+  height: var(--navbar-height);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  
+  
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.navbar-menu-btn { font-size: 1.1rem; }
+
+.navbar-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+.navbar-home    { color: var(--text-muted); }
+.navbar-sep     { color: var(--border-light); }
+.navbar-current { font-family: 'Syne', sans-serif; font-weight: 600; color: var(--text); }
+
+.navbar-center {
+  flex: 1;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.navbar-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0 14px;
+  height: 38px;
+  transition: border-color var(--transition);
+}
+.navbar-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108,99,255,0.1);
+}
+.navbar-search input {
+  background: transparent;
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--text);
+  padding: 0;
+  width: 100%;
+  box-shadow: none;
+}
+.navbar-search input::placeholder { color: var(--text-muted); }
+.search-icon { font-size: 0.85rem; flex-shrink: 0; }
+
+kbd {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ─── NOTIFICATION DROPDOWN ─── */
+.notif-wrapper { position: relative; }
+.notif-btn { position: relative; font-size: 1rem; }
+.notif-badge {
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 16px; height: 16px;
+  background: var(--rose);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  border: 2px solid var(--bg-card);
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: slideUp 0.2s ease;
+}
+
+.notif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+  cursor: pointer;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--bg-elevated); }
+
+.notif-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.notif-warning .notif-dot { background: var(--amber); }
+.notif-danger  .notif-dot { background: var(--rose); }
+.notif-info    .notif-dot { background: var(--accent-light); }
+
+.notif-body { flex: 1; }
+.notif-text { font-size: 0.85rem; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+.notif-time { font-size: 0.75rem; color: var(--text-muted); }
+
+.navbar-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity var(--transition);
+  flex-shrink: 0;
+}
+.navbar-avatar:hover { opacity: 0.85; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .navbar { padding: 0 16px; gap: 10px; }
+  .navbar-breadcrumb { display: none; }
+}
+
+@media (max-width: 600px) {
+  .navbar-center { display: none; }
+
+  /* Notification dropdown: full width on very small screens */
+  .notif-dropdown {
+    width: calc(100vw - 32px);
+    right: -8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .navbar { padding: 0 12px; gap: 8px; }
+}
