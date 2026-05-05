@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import '../styles/Task.css';
 import api from '../api/axios';
 
@@ -76,9 +76,10 @@ export default function Tasks({ searchQuery = '' }) {
   const [filterType, setFilterType] = useState('all');
   const [view, setView] = useState('list');
 
-  useEffect(() => { fetchTasks(); fetchCourses(); }, []);
-
-  const fetchTasks = async () => {
+  // FIX: wrap in useCallback so the function reference is stable.
+  // Depends on the three filter values so it re-fetches whenever they change.
+  // This also makes the second filter-watcher useEffect redundant — it can be removed.
+  const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -89,16 +90,20 @@ export default function Tasks({ searchQuery = '' }) {
       setTasks(data.data || []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [filterCourse, filterStatus, filterType]);
 
-  const fetchCourses = async () => {
+  // FIX: wrap in useCallback so the function reference is stable.
+  const fetchCourses = useCallback(async () => {
     try {
       const { data } = await api.get('/courses');
       setCourses(data.data || []);
     } catch (err) {}
-  };
+  }, []);
 
-  useEffect(() => { fetchTasks(); }, [filterCourse, filterStatus, filterType]);
+  // FIX: depend on the stable useCallback references instead of omitting them.
+  // This handles both the initial load and re-fetching when filters change,
+  // so the separate filter-watcher useEffect below is no longer needed.
+  useEffect(() => { fetchTasks(); fetchCourses(); }, [fetchTasks, fetchCourses]);
 
   const save = async (formData) => {
     if (modal && modal._id) {

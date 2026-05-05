@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/CalenderPage.css';
 import api from '../api/axios';
-
+ 
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
+ 
 function getDaysInMonth(year, month) { return new Date(year, month + 1, 0).getDate(); }
 function getFirstDay(year, month) { return new Date(year, month, 1).getDay(); }
 function toKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 }
-
+ 
 // Modal for adding/editing calendar events
 function EventModal({ date, event, courses, onSave, onClose }) {
   const [form, setForm] = useState(event
@@ -20,7 +20,7 @@ function EventModal({ date, event, courses, onSave, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const set = (k,v) => setForm(f => ({...f,[k]:v}));
-
+ 
   const handleSave = async () => {
     if (!form.title || !form.deadline) { setError('Title and date are required'); return; }
     setLoading(true); setError('');
@@ -30,7 +30,7 @@ function EventModal({ date, event, courses, onSave, onClose }) {
       setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.message || 'Failed to save');
     } finally { setLoading(false); }
   };
-
+ 
   return (
     <div className="modal-backdrop" onClick={e => e.target===e.currentTarget && onClose()}>
       <div className="modal" style={{maxWidth:460}}>
@@ -74,7 +74,7 @@ function EventModal({ date, event, courses, onSave, onClose }) {
     </div>
   );
 }
-
+ 
 export default function CalendarPage() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -85,9 +85,9 @@ export default function CalendarPage() {
   const [courses, setCourses] = useState([]);
   const [modal, setModal] = useState(null); // null | { date, event? }
   const [loading, setLoading] = useState(true);
-
+ 
   useEffect(() => { fetchAllEvents(); fetchCourses(); }, []);
-
+ 
   const fetchAllEvents = async () => {
     setLoading(true);
     try {
@@ -97,7 +97,7 @@ export default function CalendarPage() {
       ]);
       const evMap = {};
       const addEvent = (key, ev) => { if (!evMap[key]) evMap[key] = []; evMap[key].push(ev); };
-
+ 
       (tasksRes.data.data || []).forEach(t => {
         const k = t.deadline ? toKey(new Date(t.deadline)) : null;
         if (k) addEvent(k, {
@@ -114,14 +114,17 @@ export default function CalendarPage() {
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
-
+ 
   const fetchCourses = async () => {
-    try { const { data } = await api.get('/courses'); setCourses(data.data || []); } catch (err) {}
+    try {
+      const res = await api.get('/courses');
+      setCourses(res.data.data || []);
+    } catch (err) {}
   };
-
+ 
   const handleAddEvent = async (formData) => {
     // Creates a task via the Tasks API
-    const { data } = await api.post('/tasks', {
+    await api.post('/tasks', {
       title: formData.title,
       type: formData.type,
       deadline: formData.deadline,
@@ -131,7 +134,7 @@ export default function CalendarPage() {
     fetchAllEvents(); // refresh the calendar
     setModal(null);
   };
-
+ 
   const handleDeleteEvent = async (ev) => {
     if (ev.source === 'task') {
       await api.delete(`/tasks/${ev._id}`);
@@ -139,22 +142,22 @@ export default function CalendarPage() {
     // exams not deletable from calendar (use Exams page)
     fetchAllEvents();
   };
-
+ 
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDay(year, month);
   const prev = () => { if (month === 0) { setMonth(11); setYear(y => y-1); } else setMonth(m=>m-1); };
   const next = () => { if (month === 11) { setMonth(0); setYear(y => y+1); } else setMonth(m=>m+1); };
   const fmt = d => `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
   const isToday = d => d === now.getDate() && month === now.getMonth() && year === now.getFullYear();
-
+ 
   const selectedKey = selected ? fmt(selected) : null;
   const selectedEvents = selectedKey ? (events[selectedKey] || []) : [];
-
+ 
   // Week view
   const startOfWeek = new Date(year, month, (selected || now.getDate()) - new Date(year, month, selected || now.getDate()).getDay());
   const weekDays = Array.from({length:7}, (_,i) => { const d = new Date(startOfWeek); d.setDate(d.getDate()+i); return d; });
   const weekHours = Array.from({length:12},(_,i)=>i+8);
-
+ 
   return (
     <div>
       <div className="page-header">
@@ -172,7 +175,7 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
-
+ 
       <div className="cal-layout">
         <div className="card cal-main" style={{padding:0,overflow:'hidden'}}>
           <div className="cal-header">
@@ -180,7 +183,7 @@ export default function CalendarPage() {
             <h2 className="cal-month-label">{MONTHS[month]} {year}</h2>
             <button className="btn btn-ghost btn-icon cal-nav" onClick={next}>›</button>
           </div>
-
+ 
           {viewMode === 'month' ? (
             <>
               <div className="cal-day-labels">
@@ -245,7 +248,7 @@ export default function CalendarPage() {
             </div>
           )}
         </div>
-
+ 
         {/* Sidebar */}
         <div className="cal-sidebar">
           <div className="card" style={{marginBottom:16}}>
@@ -282,7 +285,7 @@ export default function CalendarPage() {
               <p style={{color:'var(--text-muted)',fontSize:'0.85rem'}}>Click a date to see events or add tasks.</p>
             )}
           </div>
-
+ 
           <div className="card">
             <div className="section-title" style={{marginBottom:14}}>Legend</div>
             {[['#6c63ff','Assignment'],['#fb7185','Exam'],['#4ade80','Task']].map(([c,l])=>(
@@ -297,7 +300,7 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
-
+ 
       {modal && (
         <EventModal
           date={modal.date}
@@ -310,3 +313,4 @@ export default function CalendarPage() {
     </div>
   );
 }
+ 

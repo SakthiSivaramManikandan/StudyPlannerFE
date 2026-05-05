@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-
+import { Routes, Route, Navigate } from 'react-router-dom';
+ 
 import './styles/App.css';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
@@ -13,43 +13,43 @@ import Exams from './components/Exams';
 import Profile from './components/Profile';
 import AdminPanel from './components/AdminPanel';
 import OAuthCallback from './components/OAuthCallback';
-
+ 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [currentUser, setCurrentUser] = useState(JSON.parse(localStorage.getItem('user') || 'null'));
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-
+ 
   useEffect(() => {
     if (window.innerWidth <= 768) setSidebarOpen(false);
   }, []);
-
+ 
   const handleLogin = (user) => {
     setCurrentUser(user);
     setIsLoggedIn(true);
   };
-
+ 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setIsLoggedIn(false);
     setCurrentUser(null);
   };
-
+ 
   if (window.location.pathname === '/oauth/callback') {
     return <OAuthCallback onLogin={handleLogin} />;
   }
-
+ 
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
   }
-
+ 
   const isAdmin = currentUser?.role === 'admin';
-
+ 
   // Derive currentPage from pathname
   const path = window.location.pathname.replace('/', '') || 'dashboard';
   const currentPage = path.split('/')[0] || 'dashboard';
-
+ 
   return (
     <div className={`app-shell ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
       <Sidebar
@@ -81,5 +81,5 @@ function App() {
     </div>
   );
 }
-
+ 
 export default App;

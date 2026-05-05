@@ -73,10 +73,11 @@ export default function Navbar({ currentPage, toggleSidebar, user: userProp, onS
   }, []);
 
   // Clear search when page changes
+  // FIX: added `onSearch` to the dependency array to satisfy the exhaustive-deps rule
   useEffect(() => {
     setSearchQuery('');
     onSearch?.('');
-  }, [currentPage]);
+  }, [currentPage, onSearch]);
 
   const clearAll = () => setNotifications([]);
   const dismissOne = (id) => setNotifications((prev) => prev.filter((n) => n.id !== id));

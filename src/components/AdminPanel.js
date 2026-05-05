@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
-
+ 
 export default function AdminPanel() {
   const [users, setUsers] = useState([]);
   const [pagination, setPagination] = useState({});
@@ -9,10 +9,8 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [delConfirm, setDelConfirm] = useState(null);
   const [toast, setToast] = useState('');
-
-  useEffect(() => { fetchUsers(); }, [page, search]);
-
-  const fetchUsers = async () => {
+ 
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page, limit: 10 });
@@ -22,10 +20,12 @@ export default function AdminPanel() {
       setPagination(data.pagination || {});
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
-
+  }, [page, search]);
+ 
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+ 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
-
+ 
   const deactivate = async (id) => {
     try {
       await api.put(`/admin/users/${id}/deactivate`);
@@ -33,7 +33,7 @@ export default function AdminPanel() {
       fetchUsers();
     } catch (err) { showToast('Failed to deactivate.'); }
   };
-
+ 
   const deleteUser = async (id) => {
     try {
       await api.delete(`/admin/users/${id}`);
@@ -42,7 +42,7 @@ export default function AdminPanel() {
       fetchUsers();
     } catch (err) { showToast('Delete failed.'); }
   };
-
+ 
   return (
     <div>
       {toast && (
@@ -50,14 +50,14 @@ export default function AdminPanel() {
           {toast}
         </div>
       )}
-
+ 
       <div className="page-header">
         <div>
           <h1 className="page-title">🛡 Admin Panel</h1>
           <p className="page-subtitle">Manage users, view all data, control access</p>
         </div>
       </div>
-
+ 
       {/* Stats Bar */}
       {pagination.total !== undefined && (
         <div style={{display:'flex',gap:16,marginBottom:24,flexWrap:'wrap'}}>
@@ -72,7 +72,7 @@ export default function AdminPanel() {
           ))}
         </div>
       )}
-
+ 
       {/* Search */}
       <div className="card" style={{padding:'16px 20px',marginBottom:20}}>
         <div style={{display:'flex',gap:10,alignItems:'center'}}>
@@ -85,7 +85,7 @@ export default function AdminPanel() {
           <span style={{fontSize:'0.82rem',color:'var(--text-muted)',whiteSpace:'nowrap'}}>{pagination.total || 0} users</span>
         </div>
       </div>
-
+ 
       {/* Users Table */}
       <div className="card" style={{padding:0,overflow:'hidden'}}>
         <div style={{overflowX:'auto'}}>
@@ -144,7 +144,7 @@ export default function AdminPanel() {
           </table>
         </div>
       </div>
-
+ 
       {/* Pagination */}
       {pagination.pages > 1 && (
         <div style={{display:'flex',justifyContent:'center',gap:8,marginTop:16}}>
@@ -153,7 +153,7 @@ export default function AdminPanel() {
           <button className="btn btn-ghost" disabled={page >= pagination.pages} onClick={() => setPage(p => p+1)}>Next →</button>
         </div>
       )}
-
+ 
       {/* Delete Confirm Modal */}
       {delConfirm && (
         <div className="modal-backdrop" onClick={() => setDelConfirm(null)}>

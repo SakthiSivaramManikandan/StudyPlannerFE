@@ -1,26 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import '../styles/Dashboard.css';
 import api from '../api/axios';
-
+ 
 export default function Dashboard() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = user.role === 'admin';
-
+ 
   const [tasks, setTasks] = useState([]);
   const [exams, setExams] = useState([]);
   const [filter, setFilter] = useState('all');
   const [showTips, setShowTips] = useState(true);
   const [activeSection, setActiveSection] = useState('tasks');
-
+ 
   // API Type 1: Static quote
   const [quote, setQuote] = useState(null);
-
+ 
   // API Type 2: Wikipedia dynamic search
   const [wikiTopic, setWikiTopic] = useState('');
   const [wikiResult, setWikiResult] = useState(null);
   const [wikiLoading, setWikiLoading] = useState(false);
   const [wikiError, setWikiError] = useState('');
-
+ 
   // API Type 3: Books DB
   const [bookQuery, setBookQuery] = useState('');
   const [books, setBooks] = useState([]);
@@ -28,29 +28,22 @@ export default function Dashboard() {
   const [bookLoading, setBookLoading] = useState(false);
   const [bookError, setBookError] = useState('');
   const [bookSearch, setBookSearch] = useState('');
-
+ 
   // Admin stats
   const [adminStats, setAdminStats] = useState(null);
   const [adminUsers, setAdminUsers] = useState([]);
-
+ 
   const [stats, setStats] = useState({ tasks: 0, exams: 0, courses: 0, done: 0 });
-
-  useEffect(() => {
-    fetchTasks();
-    fetchExams();
-    fetchStats();
-    fetchQuote();
-    fetchSavedBooks();
-    if (isAdmin) fetchAdminStats();
-  }, []);
-
-  const fetchTasks = async () => {
+ 
+  const fetchTasks = useCallback(async () => {
     try { const { data } = await api.get('/tasks'); setTasks(data.data || []); } catch (err) {}
-  };
-  const fetchExams = async () => {
+  }, []);
+ 
+  const fetchExams = useCallback(async () => {
     try { const { data } = await api.get('/exams'); setExams(data.data || []); } catch (err) {}
-  };
-  const fetchStats = async () => {
+  }, []);
+ 
+  const fetchStats = useCallback(async () => {
     try {
       const [tr, er, cr] = await Promise.all([api.get('/tasks'), api.get('/exams'), api.get('/courses')]);
       setStats({
@@ -60,24 +53,36 @@ export default function Dashboard() {
         done: (tr.data.data || []).filter(t => t.status === 'done').length,
       });
     } catch (err) {}
-  };
-  const fetchQuote = async () => {
+  }, []);
+ 
+  const fetchQuote = useCallback(async () => {
     try { const { data } = await api.get('/external/quote'); setQuote(data.data); } catch (err) {}
-  };
-  const fetchSavedBooks = async (q = '') => {
+  }, []);
+ 
+  const fetchSavedBooks = useCallback(async (q = '') => {
     try {
       const { data } = await api.get('/external/books/saved' + (q ? `?search=${encodeURIComponent(q)}` : ''));
       setSavedBooks(data.data || []);
     } catch (err) {}
-  };
-  const fetchAdminStats = async () => {
+  }, []);
+ 
+  const fetchAdminStats = useCallback(async () => {
     try {
       const { data } = await api.get('/admin/users?limit=5');
       setAdminStats(data.pagination);
       setAdminUsers(data.data || []);
     } catch (err) {}
-  };
-
+  }, []);
+ 
+  useEffect(() => {
+    fetchTasks();
+    fetchExams();
+    fetchStats();
+    fetchQuote();
+    fetchSavedBooks();
+    if (isAdmin) fetchAdminStats();
+  }, [isAdmin, fetchTasks, fetchExams, fetchStats, fetchQuote, fetchSavedBooks, fetchAdminStats]);
+ 
   const searchWiki = async () => {
     if (!wikiTopic.trim()) return;
     setWikiLoading(true); setWikiError(''); setWikiResult(null);
@@ -88,7 +93,7 @@ export default function Dashboard() {
       setWikiError(err.response?.data?.message || 'Topic not found. Try a different search term.');
     } finally { setWikiLoading(false); }
   };
-
+ 
   const searchBooks = async () => {
     if (!bookQuery.trim()) return;
     setBookLoading(true); setBookError('');
@@ -100,11 +105,11 @@ export default function Dashboard() {
       setBookError(err.response?.data?.message || 'Search failed');
     } finally { setBookLoading(false); }
   };
-
+ 
   const removeBook = async (id) => {
     try { await api.delete(`/external/books/${id}`); fetchSavedBooks(); } catch (err) {}
   };
-
+ 
   const toggleTask = async (id) => {
     try {
       const { data } = await api.patch(`/tasks/${id}/complete`);
@@ -113,24 +118,24 @@ export default function Dashboard() {
       fetchStats();
     } catch (err) {}
   };
-
+ 
   const deactivateUser = async (userId) => {
     try { await api.put(`/admin/users/${userId}/deactivate`); fetchAdminStats(); } catch (err) {}
   };
-
+ 
   const STATS_DATA = [
     { label: 'Active Tasks', value: stats.tasks, icon: '📋', color: 'accent', delta: 'pending tasks' },
     { label: 'Upcoming Exams', value: stats.exams, icon: '📝', color: 'amber', delta: 'scheduled' },
     { label: 'Courses', value: stats.courses, icon: '🎓', color: 'teal', delta: 'this semester' },
     { label: 'Completed', value: stats.done, icon: '✅', color: 'green', delta: 'tasks done' },
   ];
-
+ 
   const filtered = tasks.filter(t => {
     if (filter === 'pending') return t.status !== 'done';
     if (filter === 'done') return t.status === 'done';
     return true;
   });
-
+ 
   const SECTIONS = isAdmin
     ? [
         { key: 'tasks', label: '📋 Tasks' },
@@ -145,7 +150,7 @@ export default function Dashboard() {
         { key: 'wiki', label: '🔍 Wiki Search' },
         { key: 'books', label: '📚 Books' },
       ];
-
+ 
   return (
     <div>
       <div className="page-header">
@@ -160,7 +165,7 @@ export default function Dashboard() {
           💡 {showTips ? 'Hide' : 'Show'} Tip
         </button>
       </div>
-
+ 
       {/* TYPE 1 API: Static Quote */}
       {showTips && (
         <div style={{padding:'12px 16px',marginBottom:20,background:'var(--surface)',borderRadius:10,borderLeft:'3px solid var(--accent)',display:'flex',alignItems:'center',gap:12}}>
@@ -174,7 +179,7 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-
+ 
       <div className="stats-grid">
         {STATS_DATA.map(s => (
           <div className={`stat-card stat-${s.color}`} key={s.label}>
@@ -187,7 +192,7 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
-
+ 
       {/* Section Navigation */}
       <div className="mobile-nav" style={{flexWrap:'wrap',gap:6,marginBottom:20}}>
         {SECTIONS.map(s => (
@@ -203,7 +208,7 @@ export default function Dashboard() {
           >{s.label}</button>
         ))}
       </div>
-
+ 
       {/* TASKS */}
       {activeSection === 'tasks' && (
         <div className="dashboard-grid">
@@ -236,7 +241,7 @@ export default function Dashboard() {
           </section>
         </div>
       )}
-
+ 
       {/* EXAMS */}
       {activeSection === 'exams' && (
         <section className="card">
@@ -258,7 +263,7 @@ export default function Dashboard() {
           ))}
         </section>
       )}
-
+ 
       {/* TYPE 2 API: Wikipedia Dynamic Search */}
       {activeSection === 'wiki' && (
         <section className="card">
@@ -307,7 +312,7 @@ export default function Dashboard() {
           )}
         </section>
       )}
-
+ 
       {/* TYPE 3 API: Books DB */}
       {activeSection === 'books' && (
         <section className="card">
@@ -368,7 +373,7 @@ export default function Dashboard() {
           </div>
         </section>
       )}
-
+ 
       {/* ADMIN PANEL */}
       {activeSection === 'admin' && isAdmin && (
         <section className="card">
@@ -409,7 +414,7 @@ export default function Dashboard() {
           </div>
         </section>
       )}
-
+ 
       <footer style={{marginTop:30,textAlign:'center',color:'var(--text-muted)',fontSize:'0.8rem',padding:'16px 0'}}>
         © 2026 StudyPlanner — Your academic companion
       </footer>

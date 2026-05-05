@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import '../styles/Sidebar.css';
-
+ 
 const STUDENT_NAV = [
   { path: '/', icon: '⊞', label: 'Dashboard' },
   { path: '/calendar', icon: '📅', label: 'Calendar' },
@@ -10,7 +10,7 @@ const STUDENT_NAV = [
   { path: '/exams', icon: '📝', label: 'Exams' },
   { path: '/profile', icon: '👤', label: 'Profile' },
 ];
-
+ 
 const ADMIN_NAV = [
   { path: '/', icon: '⊞', label: 'Dashboard' },
   { path: '/calendar', icon: '📅', label: 'Calendar' },
@@ -20,20 +20,20 @@ const ADMIN_NAV = [
   { path: '/admin', icon: '🛡', label: 'Admin Panel' },
   { path: '/profile', icon: '👤', label: 'Profile' },
 ];
-
+ 
 export default function Sidebar({ isOpen, onClose, onLogout, isAdmin }) {
   const location = useLocation();
   const NAV = isAdmin ? ADMIN_NAV : STUDENT_NAV;
-
+ 
   useEffect(() => {
     if (onClose && window.innerWidth <= 768) onClose();
-  }, [location.pathname]);
-
+  }, [location.pathname, onClose]);
+ 
   useEffect(() => {
     document.body.style.overflow = isOpen && window.innerWidth <= 768 ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
-
+ 
   return (
     <>
       <div className={`sidebar-overlay ${isOpen ? 'visible' : ''}`} onClick={onClose} aria-hidden="true" />
